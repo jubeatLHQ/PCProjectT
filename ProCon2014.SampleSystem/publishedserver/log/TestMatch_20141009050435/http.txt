@@ -1,0 +1,13 @@
+2014/10/09 05:07:39	127.0.0.1	POST	http://localhost/SubmitAnswer	30	RequestReceived
+2014/10/09 05:08:14	127.0.0.1	POST	http://localhost/SubmitAnswer	32	RequestReceived
+2014/10/09 05:09:51	127.0.0.1	POST	http://localhost/SubmitAnswer	40	RequestReceived
+2014/10/09 05:10:35	127.0.0.1	POST	http://localhost/SubmitAnswer	52	RequestReceived
+2014/10/09 05:11:30	127.0.0.1	POST	http://localhost/SubmitAnswer	69	RequestReceived
+2014/10/09 05:13:01	::1	POST	http://localhost/SubmitAnswer	83	RequestReceived
+2014/10/09 05:13:28	::1	POST	http://localhost/SubmitAnswer	31	RequestReceived
+2014/10/09 05:13:33	::1	POST	http://localhost/SubmitAnswer	83	RequestReceived
+2014/10/09 05:13:47	::1	POST	http://localhost/SubmitAnswer	83	RequestReceived
+2014/10/09 05:13:58	::1	POST	http://localhost/SubmitAnswer	83	RequestReceived
+2014/10/09 05:14:48	127.0.0.1	POST	http://localhost/SubmitAnswer	48	RequestReceived
+2014/10/09 05:16:03	127.0.0.1	POST	http://localhost/SubmitAnswer	48	RequestReceived
+2014/10/09 05:18:14	127.0.0.1	POST	http://localhost/SubmitAnswer	90	RequestReceived

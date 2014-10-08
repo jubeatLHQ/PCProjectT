@@ -31,7 +31,7 @@ public class AlgorithmPicture {
 		this.subframe = subframe;
 	}
 
-	public void start(){
+	public void start() throws Exception{
 
 		long started = System.currentTimeMillis();
 
@@ -39,7 +39,7 @@ public class AlgorithmPicture {
 		for(int i = 0;i<images.size();i++){
 			images2.add(new MyBufferedImage(images.get(i),i));
 		}
-		///subframe.setProblem(width,height);
+
 
 		int count = 1;
 
@@ -181,13 +181,38 @@ public class AlgorithmPicture {
 		System.out.println(fdls.size()+" pieces");
 		System.out.println(fdrs.size()+" pieces");
 
+		if(fuls.size()==0||furs.size()==0||fdls.size()==0||fdrs.size()==0){
+			throw new Exception();
+		}
+
+		List<MyPuzzle> finishedPuzzles = new ArrayList<MyPuzzle>();
+
 		for(MyBufferedImage imgul:fuls){
 			for(MyBufferedImage imgur:furs){
 				for(MyBufferedImage imgdl:fdls){
 					for(MyBufferedImage imgdr:fdrs){
-						makePazzle(imgul,imgur,imgdl,imgdr);
+						MyPuzzle puzzle = makePuzzle(imgul,imgur,imgdl,imgdr);
+						finishedPuzzles.add(puzzle);
 					}
 				}
+			}
+		}
+		subframe.setProblem(width,height,row,column,images2);
+		double mostMatchRate = 0.0;
+		int mostMatch = -1;
+		for(int i = 0;i<finishedPuzzles.size();i++){
+			MyPuzzle puzzle = finishedPuzzles.get(i);
+			System.out.println(puzzle.getAllRate());
+			if(puzzle.getAllRate()>mostMatchRate){
+				mostMatchRate = puzzle.getAllRate();
+				mostMatch = i;
+			}
+		}
+		int[][] puzzle = finishedPuzzles.get(mostMatch).getPuzzle();
+		for(int u = 0;u<column;u++){
+			for(int i = 0;i<row;i++){
+				System.out.println(i+","+u+","+(puzzle[i][u]+1));
+				subframe.setPart(i,u,puzzle[i][u]);
 			}
 		}
 
@@ -195,24 +220,24 @@ public class AlgorithmPicture {
 	}
 
 
-	private void makePazzle(MyBufferedImage imgul, MyBufferedImage imgur, MyBufferedImage imgdl, MyBufferedImage imgdr) {
-		int[][] pazzle = new int[row][column];
+	private MyPuzzle makePuzzle(MyBufferedImage imgul, MyBufferedImage imgur, MyBufferedImage imgdl, MyBufferedImage imgdr) {
+		int[][] puzzle = new int[row][column];
 		for(int i = 0;i<row;i++){
 			for(int u = 0;u<column;u++){
-				pazzle[i][u] = -1;
+				puzzle[i][u] = -1;
 			}
 		}
-		List<Integer> stacks = new ArrayList<Integer>();
-		for(int i = 0;i<images2.size();i++){
-			if(i!=imgul.getIndex()&&i!=imgur.getIndex()&&i!=imgdl.getIndex()&&i!=imgdr.getIndex()){
+		List<MyBufferedImage> stacks = new ArrayList<MyBufferedImage>();
+		for(MyBufferedImage i:images2){
+			if(i!=imgul&&i!=imgur&&i!=imgdl&&i!=imgdr){
 				stacks.add(i);
 			}
 		}
 
-		pazzle[0][0] = imgul.getIndex();
-		pazzle[row-1][0] = imgur.getIndex();
-		pazzle[0][column-1] = imgdl.getIndex();
-		pazzle[row-1][column-1] = imgdr.getIndex();
+		puzzle[0][0] = imgul.getIndex();
+		puzzle[row-1][0] = imgur.getIndex();
+		puzzle[0][column-1] = imgdl.getIndex();
+		puzzle[row-1][column-1] = imgdr.getIndex();
 
 		LinkedList<Pair> array = new LinkedList<Pair>();
 		array.offer(new Pair(0,0));
@@ -221,56 +246,67 @@ public class AlgorithmPicture {
 		array.offer(new Pair(row-1,column-1));
 
 		while(!array.isEmpty()){
+
 			Pair p = array.poll();
 			List<Pair> around = aroundPair(p);
 			for(Pair newP:around){
-				if(pazzle[newP.first][newP.second]!=-1){continue;}
+				if(puzzle[newP.first][newP.second]!=-1){continue;}
 				List<Pair> around2 = aroundPair(newP);
 				List<Pair> match = new ArrayList<Pair>();
 				for(Pair aP:around2){
-					if(pazzle[aP.first][aP.second]==-1){match.add(aP);}
+					if(puzzle[aP.first][aP.second]!=-1){match.add(aP);}
 				}
 				if(match.size()==0){continue;}
-				MyBufferedImage mostMatch = searchPiece(newP,match,stacks);
-				pazzle[newP.first][newP.second]=mostMatch.getIndex();
+				MyBufferedImage mostMatch = searchPiece(newP,match,stacks,puzzle);
+				puzzle[newP.first][newP.second]=mostMatch.getIndex();
 				array.offer(newP);
 			}
 		}
-
-		for(int i = 0;i<row;i++){
-			for(int u = 0;u<column;u++){
-				System.out.println(i+","+u+","+pazzle[i][u]);
-			}
-		}
-	}
-
-	public MyBufferedImage searchPiece(Pair newP,List<Pair> match,List<Integer> stacks){
-		MyBufferedImage mostMatch = null;
-		double mostrate = 0.0;
-		double rate;
-		MyBufferedImage image;
-		MyBufferedImage image2;
-		MyColorsList list;
-		MyColorsList list2;
-		for(Pair p:match){
-			int index = (p.first)+p.second*(row);
-			image = images2.get(index);
-			DirectionJ dir = getDirection(p,newP);
-			list = image.getMyColors(dir);
-			for(int stackIndex:stacks){
-				image2 = images2.get(stackIndex);
-				list2 = image2.getMyColors(reverseDir(dir));
-				rate(list,list2,false);
-				rate = memo.get(getKey(list.getId(),list2.getId()));
-				if(rate>mostrate){
-					mostrate = rate;
-					mostMatch = images2.get(stackIndex);
+		double sum = 0.0;
+		int count = 0;
+		for(int u = 0;u<column;u++){
+			for(int i = 0;i<row;i++){
+				Pair p = new Pair(i,u);
+				MyBufferedImage source = images2.get(puzzle[p.first][p.second]);
+				List<Pair> around = aroundPair(p);
+				for(Pair newP:around){
+					DirectionJ dir = getDirection(p,newP);
+					MyBufferedImage aroundImage = images2.get(puzzle[newP.first][newP.second]);
+					String key = getKey(source.getMyColors(dir).getId(),aroundImage.getMyColors(reverseDir(dir)).getId());
+					sum+=memo.get(key);
+					count++;
 				}
 			}
 		}
-		if(mostMatch==null){
-			System.out.println("null"+match.size());
+		sum/=count*1.0;
+		MyPuzzle newPuzzle = new MyPuzzle(puzzle,sum);
+		return newPuzzle;
+	}
+
+	public MyBufferedImage searchPiece(Pair newP,List<Pair> match,List<MyBufferedImage> stacks,int[][] puzzle){
+
+		MyBufferedImage mostMatch = null;
+		double mostrate = 0.0;
+		int mindex = -1;
+		for(int i = 0;i<stacks.size();i++){
+			MyBufferedImage source = stacks.get(i);
+			double sum = 0.0;
+			for(Pair around:match){
+				int index = puzzle[around.first][around.second];
+				MyBufferedImage around1image = images2.get(index);
+				DirectionJ dir = getDirection(newP,around);
+				String key = getKey(source.getMyColors(dir).getId(),around1image.getMyColors(reverseDir(dir)).getId());
+				rate(source.getMyColors(dir),around1image.getMyColors(reverseDir(dir)),false);
+				sum+=memo.get(key);
+			}
+			sum/=match.size()*1.0;
+			if(sum>mostrate){
+				mostMatch = source;
+				mostrate = sum;
+				mindex = i;
+			}
 		}
+		stacks.remove(mindex);
 		return mostMatch;
 	}
 
@@ -287,22 +323,23 @@ public class AlgorithmPicture {
 	}
 
 	public DirectionJ getDirection(Pair source,Pair p2){
+		DirectionJ returnDir = null;
 		int first = source.first;
 		int second = source.second;
 		int first2 = p2.first;
 		int second2 = p2.second;
-		int ff = max(first,first2)-min(first,first2);
-		int fs = max(second,second2)-min(second,second2);
+		int ff = first2-first;
+		int fs = second2-second;
 		if(ff==1){
-			return DirectionJ.RIGHT;
-		}else if(fs==1){
-			return DirectionJ.DOWN;
+			returnDir = DirectionJ.RIGHT;
 		}else if(ff==-1){
-			return DirectionJ.LEFT;
+			returnDir = DirectionJ.LEFT;
 		}else if(fs==-1){
-			return DirectionJ.UP;
+			returnDir = DirectionJ.UP;
+		}else if(fs==1){
+			returnDir = DirectionJ.DOWN;
 		}
-		return null;
+		return returnDir;
 	}
 
 	private int max(int i,int u){
@@ -320,8 +357,14 @@ public class AlgorithmPicture {
 
 	public List<Pair> aroundPair(Pair source){
 		List<Pair> pairs = new ArrayList<Pair>();
-		int first = source.first;
-		int second = source.second+1;
+		int first = source.first-1;
+		int second = source.second;
+		if(first!=-1&&first<row&&second!=-1&&second<column){
+			Pair p = new Pair(first,second);
+			pairs.add(p);
+		}
+		first = source.first;
+		second = source.second-1;
 		if(first!=-1&&first<row&&second!=-1&&second<column){
 			Pair p = new Pair(first,second);
 			pairs.add(p);
@@ -333,13 +376,7 @@ public class AlgorithmPicture {
 			pairs.add(p);
 		}
 		first = source.first;
-		second = source.second-1;
-		if(first!=-1&&first<row&&second!=-1&&second<column){
-			Pair p = new Pair(first,second);
-			pairs.add(p);
-		}
-		first = source.first-1;
-		second = source.second;
+		second = source.second+1;
 		if(first!=-1&&first<row&&second!=-1&&second<column){
 			Pair p = new Pair(first,second);
 			pairs.add(p);
@@ -347,7 +384,7 @@ public class AlgorithmPicture {
 		return pairs;
 	}
 
-	private final double prate = 96.5;
+	private final double prate = 96.5;///def96.5
 	private HashMap<String,Double> memo = new HashMap<String,Double>();
 
 	private int rate(MyColorsList color1,MyColorsList color2,boolean gradation){

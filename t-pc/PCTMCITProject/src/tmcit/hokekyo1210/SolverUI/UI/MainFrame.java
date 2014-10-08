@@ -17,11 +17,13 @@ import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 
 import tmcit.hokekyo1210.SolverUI.AlgorithmPicture;
+import tmcit.hokekyo1210.SolverUI.HttpUtil;
 
 public class MainFrame extends JFrame implements ActionListener{
 
@@ -75,12 +77,15 @@ public class MainFrame extends JFrame implements ActionListener{
 
 		JMenuBar menubar = new JMenuBar();
 		JMenu menu1 = new JMenu("File");
-		JMenuItem menuitem1 = new JMenuItem("Open");
-		JMenuItem menuitem2 = new JMenuItem("Exit");
+		JMenuItem menuitem1 = new JMenuItem("Problem");
+		JMenuItem menuitem2 = new JMenuItem("Open");
+		JMenuItem menuitem3 = new JMenuItem("Exit");
 		menuitem1.addActionListener(this);
 		menuitem2.addActionListener(this);
+		menuitem3.addActionListener(this);
 		menu1.add(menuitem1);
 		menu1.add(menuitem2);
+		menu1.add(menuitem3);
 		menubar.add(menu1);
 
 		this.setJMenuBar(menubar);
@@ -151,7 +156,11 @@ public class MainFrame extends JFrame implements ActionListener{
 		}
 
 		AlgorithmPicture picSolver = new AlgorithmPicture(images,row,column,image.getWidth(),image.getHeight(),subframe);
-		picSolver.start();
+		try{
+			picSolver.start();
+		}catch(Exception e){
+			System.out.println("error");
+		}
 
 		mainPanel.setBounds(0, 0, image.getWidth()+3, image.getHeight()+3);
 		this.setSize(image.getWidth()+12, image.getHeight()+50);
@@ -197,6 +206,17 @@ public class MainFrame extends JFrame implements ActionListener{
 				openFiler();
 			}else if(text.equalsIgnoreCase("Exit")){
 				System.exit(0);
+			}else if(text.equalsIgnoreCase("Problem")){
+				String value = JOptionPane.showInputDialog(this, "Problem Number");
+				if(value != null){
+					value = "prob"+value;
+					value += ".ppm";
+					try {
+						HttpUtil.getProblemFile(value);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 	}
