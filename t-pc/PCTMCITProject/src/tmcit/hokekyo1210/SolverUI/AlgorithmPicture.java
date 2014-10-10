@@ -19,6 +19,7 @@ public class AlgorithmPicture {
 	private int column;
 	private int width;
 	private int height;
+	private long order = 0;
 
 	private SubFrame subframe;
 
@@ -176,23 +177,30 @@ public class AlgorithmPicture {
 				fdrs.add(images2.get(k-1));
 			}
 		}
+		int size = fuls.size()*furs.size()*fdls.size()*fdrs.size();
 		System.out.println(fuls.size()+" pieces");
 		System.out.println(furs.size()+" pieces");
 		System.out.println(fdls.size()+" pieces");
-		System.out.println(fdrs.size()+" pieces");
+		System.out.println(fdrs.size()+" pieces");	
+		System.out.println(size+" pieces");
 
 		if(fuls.size()==0||furs.size()==0||fdls.size()==0||fdrs.size()==0){
 			throw new Exception();
 		}
 
 		List<MyPuzzle> finishedPuzzles = new ArrayList<MyPuzzle>();
-
+		count = 0;
 		for(MyBufferedImage imgul:fuls){
 			for(MyBufferedImage imgur:furs){
 				for(MyBufferedImage imgdl:fdls){
 					for(MyBufferedImage imgdr:fdrs){
 						MyPuzzle puzzle = makePuzzle(imgul,imgur,imgdl,imgdr);
 						finishedPuzzles.add(puzzle);
+						count++;
+						if(count%100==0){
+							double d = (count*1.0)/(size*1.0);
+							System.out.println((d*100.0)+"% search "+String.valueOf(order));
+						}
 					}
 				}
 			}
@@ -206,22 +214,24 @@ public class AlgorithmPicture {
 			if(puzzle.getAllRate()>mostMatchRate){
 				mostMatchRate = puzzle.getAllRate();
 				mostMatch = i;
+				
 			}
 		}
 		int[][] puzzle = finishedPuzzles.get(mostMatch).getPuzzle();
 		for(int u = 0;u<column;u++){
 			for(int i = 0;i<row;i++){
-				System.out.println(i+","+u+","+(puzzle[i][u]+1));
 				subframe.setPart(i,u,puzzle[i][u]);
 			}
 		}
 
-		System.out.println(System.currentTimeMillis()-started+" ms");
+		System.out.println("order "+String.valueOf(order)+" "+(System.currentTimeMillis()-started)+" ms");
 	}
 
 
 	private MyPuzzle makePuzzle(MyBufferedImage imgul, MyBufferedImage imgur, MyBufferedImage imgdl, MyBufferedImage imgdr) {
+		MyPuzzle newPuzzle = new MyPuzzle();
 		int[][] puzzle = new int[row][column];
+		
 		for(int i = 0;i<row;i++){
 			for(int u = 0;u<column;u++){
 				puzzle[i][u] = -1;
@@ -240,10 +250,14 @@ public class AlgorithmPicture {
 		puzzle[row-1][column-1] = imgdr.getIndex();
 
 		LinkedList<Pair> array = new LinkedList<Pair>();
+		
+		
+		array.offer(new Pair(row-1,column-1));
 		array.offer(new Pair(0,0));
 		array.offer(new Pair(row-1,0));
 		array.offer(new Pair(0,column-1));
-		array.offer(new Pair(row-1,column-1));
+		
+
 
 		while(!array.isEmpty()){
 
@@ -257,33 +271,41 @@ public class AlgorithmPicture {
 					if(puzzle[aP.first][aP.second]!=-1){match.add(aP);}
 				}
 				if(match.size()==0){continue;}
-				MyBufferedImage mostMatch = searchPiece(newP,match,stacks,puzzle);
-				puzzle[newP.first][newP.second]=mostMatch.getIndex();
-				array.offer(newP);
+				MyBufferedImage mostMatch = searchPiece(newP,match,stacks,puzzle,newPuzzle);
+				
+				if(mostMatch!=null){
+					puzzle[newP.first][newP.second]=mostMatch.getIndex();
+					array.offer(newP);
+				}
 			}
 		}
-		double sum = 0.0;
+		/*double sum = 0.0;
 		int count = 0;
 		for(int u = 0;u<column;u++){
 			for(int i = 0;i<row;i++){
 				Pair p = new Pair(i,u);
+				if(puzzle[p.first][p.second]==-1){continue;}
 				MyBufferedImage source = images2.get(puzzle[p.first][p.second]);
 				List<Pair> around = aroundPair(p);
 				for(Pair newP:around){
 					DirectionJ dir = getDirection(p,newP);
+					if(puzzle[newP.first][newP.second]==-1){break;}
 					MyBufferedImage aroundImage = images2.get(puzzle[newP.first][newP.second]);
 					String key = getKey(source.getMyColors(dir).getId(),aroundImage.getMyColors(reverseDir(dir)).getId());
 					sum+=memo.get(key);
+					///System.out.println(memo.get(key)+","+p.first+","+p.second);
 					count++;
 				}
 			}
 		}
-		sum/=count*1.0;
+		///sum/=count*1.0;
 		MyPuzzle newPuzzle = new MyPuzzle(puzzle,sum);
+		*/
+		newPuzzle.setPuzzle(puzzle);
 		return newPuzzle;
 	}
 
-	public MyBufferedImage searchPiece(Pair newP,List<Pair> match,List<MyBufferedImage> stacks,int[][] puzzle){
+	public MyBufferedImage searchPiece(Pair newP,List<Pair> match,List<MyBufferedImage> stacks,int[][] puzzle,MyPuzzle mypuzzle){
 
 		MyBufferedImage mostMatch = null;
 		double mostrate = 0.0;
@@ -292,11 +314,14 @@ public class AlgorithmPicture {
 			MyBufferedImage source = stacks.get(i);
 			double sum = 0.0;
 			for(Pair around:match){
+				order++;
 				int index = puzzle[around.first][around.second];
 				MyBufferedImage around1image = images2.get(index);
 				DirectionJ dir = getDirection(newP,around);
 				String key = getKey(source.getMyColors(dir).getId(),around1image.getMyColors(reverseDir(dir)).getId());
-				rate(source.getMyColors(dir),around1image.getMyColors(reverseDir(dir)),false);
+				if(!memo.containsKey(key)){
+					rate(source.getMyColors(dir),around1image.getMyColors(reverseDir(dir)),false);
+				}
 				sum+=memo.get(key);
 			}
 			sum/=match.size()*1.0;
@@ -306,7 +331,12 @@ public class AlgorithmPicture {
 				mindex = i;
 			}
 		}
-		stacks.remove(mindex);
+		if(mostrate<94.0){///def94.0
+			mostMatch = null;
+		}else{
+			mypuzzle.allRate+=mostrate;
+			stacks.remove(mindex);
+		}
 		return mostMatch;
 	}
 
@@ -384,7 +414,7 @@ public class AlgorithmPicture {
 		return pairs;
 	}
 
-	private final double prate = 96.5;///def96.5
+	private final double prate = 96.2;///def96.5
 	private HashMap<String,Double> memo = new HashMap<String,Double>();
 
 	private int rate(MyColorsList color1,MyColorsList color2,boolean gradation){

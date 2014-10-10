@@ -19,6 +19,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 
@@ -155,15 +156,22 @@ public class MainFrame extends JFrame implements ActionListener{
 			imageLabels.add(newArray);
 		}
 
-		AlgorithmPicture picSolver = new AlgorithmPicture(images,row,column,image.getWidth(),image.getHeight(),subframe);
-		try{
-			picSolver.start();
-		}catch(Exception e){
-			System.out.println("error");
-		}
+		final AlgorithmPicture picSolver = new AlgorithmPicture(images,row,column,image.getWidth(),image.getHeight(),subframe);
+
 
 		mainPanel.setBounds(0, 0, image.getWidth()+3, image.getHeight()+3);
 		this.setSize(image.getWidth()+12, image.getHeight()+50);
+		this.repaint();
+		
+		SwingUtilities.invokeLater(new Runnable(){
+			public void run(){
+				try {
+					picSolver.start();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	private void paint(ILabel label){
