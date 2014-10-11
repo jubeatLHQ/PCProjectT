@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import tmcit.hokekyo1210.SolverUI.MyBufferedImage;
+import tmcit.hokekyo1210.SolverUI.MyPuzzle;
 
 public class SubFrame extends JFrame implements KeyListener{
 
@@ -36,7 +37,7 @@ public class SubFrame extends JFrame implements KeyListener{
 		this.setTitle(title);
 		this.setSize(803, 450);
 		this.setResizable(false);
-		
+
 		this.addKeyListener(this);
 
 		mainPanel = new JPanel(null);
@@ -47,12 +48,19 @@ public class SubFrame extends JFrame implements KeyListener{
 	private int row;
 	private int column;
 	private List<MyBufferedImage> images;
+	private int all = 0;
+	private int now = 0;
+	private List<MyPuzzle> finishedPuzzles = new ArrayList<MyPuzzle>();
 
 	public void setProblem(int width,int height,int row,int column,List<MyBufferedImage> images){
 		for(JLabel label:labels){
 			mainPanel.remove(label);
 		}
 		labels.clear();
+		finishedPuzzles.clear();
+		this.all = 0;
+		this.column = 0;
+
 		this.row = row;
 		this.column = column;
 		this.images = images;
@@ -73,38 +81,57 @@ public class SubFrame extends JFrame implements KeyListener{
 			}
 		}
 	}
-	
-	private int all = 0;
-	private int now = 0;
+
+
+
+	public void setPuzzles(List<MyPuzzle> puzzles){
+		finishedPuzzles = puzzles;
+		all = puzzles.size();
+		showPuzzle(0);
+	}
+	public void showPuzzle(int index){
+		if(index>=all||index<0){return;}
+		now = index;
+		this.setTitle((index+1)+"/"+all);
+		for(int y = 0;y<column;y++){
+			for(int x = 0;x<row;x++){
+				setPart(x,y,finishedPuzzles.get(index).getPuzzle()[x][y]);
+			}
+		}
+		mainPanel.repaint();
+	}
 
 	public void setPart(int x,int y,int index){
-		if(index==-1){return;}
-		labels.get(x+y*row).setIcon(new ImageIcon(images.get(index).getImage()));
+		if(index==-1){
+			labels.get(x+y*row).setIcon(null);
+		}else{
+			labels.get(x+y*row).setIcon(new ImageIcon(images.get(index).getImage()));
+		}
 	}
 
 	@Override
 	public void keyPressed(KeyEvent arg0) {
-		
+
 	}
 
 	@Override
 	public void keyReleased(KeyEvent event) {
 		char c = event.getKeyChar();
 		if(c=='a'){
-			System.out.println("a");
+			showPuzzle(now-1);
 		}else if(c=='d'){
-			System.out.println("d");
+			showPuzzle(now+1);
 		}else if(c=='w'){
 		}else if(c=='s'){
 		}else if(c=='\n'){
-			
+
 		}
 	}
 
 	@Override
 	public void keyTyped(KeyEvent e) {
 	}
-	
-	
+
+
 
 }

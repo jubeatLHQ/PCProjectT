@@ -1,6 +1,7 @@
 package tmcit.hokekyo1210.SolverUI;
 
 import tmcit.hokekyo1210.SolverUI.UI.MainFrame;
+import tmcit.hokekyo1210.SolverUI.UI.OptionFrame;
 import tmcit.hokekyo1210.SolverUI.UI.SubFrame;
 
 public class Main {
@@ -14,6 +15,7 @@ public class Main {
 
 	public static MainFrame frame;
 	public static SubFrame frame2;
+	public static OptionFrame of;
 
 
 	public Main(){
@@ -24,6 +26,7 @@ public class Main {
 	private void launchUI() {
 		frame2 = new SubFrame("");
 		frame = new MainFrame("2014PCUI",frame2);
+		of = new OptionFrame("test",frame,frame2);
 		return;
 	}
 

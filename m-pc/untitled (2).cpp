@@ -6,7 +6,7 @@ bool check();                   //ゴール状態か判定
 static int state[16][16];             //盤面の状態を保存
 static int goal[16][16];                  //ゴールの盤面を保存
 int move(int x, int y, int flag);
-
+int mv_len(int y, int x);
 
 //交換操作
 int swap_U(int state[16][16], int sy, int sx){
@@ -56,19 +56,17 @@ int swap_L(int state[16][16], int sy, int sx){
 7 14 13
 */
 int main(){
-    int space, k = 1;
+    int k = 1;
     cout << "height:";
     cin >> height;
     cout << "width:";
     cin >> width;
-    cout << "space:";
-    cin >> space;
     for(short i = 0; i < height; i++){
         for(short j = 0; j < width; j++){
             cin >> state[i][j];
             goal[i][j] = k;
             k++;
-            if(state[i][j] == space){
+            if(state[i][j] == height*width){
                 sx = j;
                 sy = i;
             }
@@ -82,6 +80,7 @@ int main(){
         }
     }
     */
+    //残り2段になるまで進める
     for(int i = 0; i < height-2; i++){
         for(int j = 0; j < width; j++){
             if(j == width-1){
@@ -91,7 +90,35 @@ int main(){
             }
         }
     }
+
+    //中間表示
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            cout << state[i][j] << " ";
+        }
+        cout << endl << endl;
+    }
+
+
+
+    //残り2段を縦でそろえて行く
+    for(int i = 0; i < width-2; i++){
+        mv_len(width-2,i);
+        cout << endl;
+
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            cout << state[i][j] << " ";
+        }
+        cout << endl;
+    }
+    }
     cout << endl;
+
+
+
+
+    //結果表示
     for(int i = 0; i < height; i++){
         for(int j = 0; j < width; j++){
             cout << state[i][j] << " ";
@@ -102,6 +129,552 @@ int main(){
     return 0;
 }
 
+int mv_len(int y, int x){
+for(int cnt = 0; cnt < 2; cnt++){
+    if(state[y][x] == goal[y][x] && state[y+1][x] == goal[y+1][x])  return 0;
+    if(sx == x && state[sy+1][sx] == goal[y][x] && state[sy+1][sx+1] == goal[y+1][x]){
+            swap_D(state, sy, sx);
+            sy++;
+            swap_R(state, sy, sx);
+            sx++;
+            return 0;
+    }
+    if(sx == x+1 && state[y+1][x] == goal[y][x] && state[y][x] == goal[y+1][x]){
+        while(sy != height-1){
+            swap_D(state, sy, sx);
+            sy++;
+        }
+        swap_L(state, sy, sx);
+        sx--;
+        swap_U(state, sy, sx);
+        sy--;
+        swap_R(state, sy, sx);
+        sx++;
+        swap_R(state, sy, sx);
+        sx++;
+        swap_D(state, sy, sx);
+        sy++;
+        swap_L(state, sy, sx);
+        sx--;
+    }
+
+    //必要な上下左右の動作を確認
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            if(goal[y][x] == state[i][j]){
+                tx = j;
+                ty = i;
+            }
+        }
+    }
+
+    if(sx == tx && sy < ty){
+        swap_R(state, sy, sx);
+        sx++;
+        swap_D(state, sy, sx);
+        sy++;
+        swap_L(state, sy, sx);
+        sx--;
+        swap_U(state, sy, sx);
+        sy--;
+        swap_R(state, sy, sx);
+        sx++;
+        swap_R(state, sy, sx);
+        sx++;
+        swap_D(state, sy, sx);
+        sy++;
+        swap_L(state, sy, sx);
+        sx--;
+    }
+    if(tx == x && ty == y && ty != height-1){
+        if(sy == height-1){
+            swap_U(state, sy, sx);
+            sy--;
+        }
+        while(sx != x){
+            swap_L(state, sy, sx);
+            sx--;
+        }
+        swap_D(state, sy, sx);
+        sy++;
+        swap_R(state, sy, sx);
+        sx++;
+        swap_U(state, sy, sx);
+        sy--;
+    }
+
+    if(cnt == 0){
+        y++;   
+    }else if(cnt == 1){
+        y--;
+    }
+    
+    /*
+    int tx1,tx2,ty1,ty2;
+
+    //コーナーケースの判定
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            if(goal[y][x] == state[i][j]){
+                //13
+                tx1 = j;
+                ty1 = i;
+            }else if(goal[y-1][x] == state[i][j])
+                //9
+                tx2 = j;
+                ty2 = i;
+        }
+    }
+    if(tx1+1 <= tx2 && tx2 <= x+1){
+        if(sx > tx2){
+            while(sx != tx2+1){
+                swap_L(state, sy, sx);
+                sx--;
+            }
+            if(sy > ty2){
+                swap_U(state, sy, sx);
+                sy--;
+            }else if(sy < ty2){
+                swap_D(state, sy, sx);
+                sy++;  
+            }
+
+        }else if(sx < tx2){
+            while(sx != tx2+1){
+                swap_R(state, sy, sx);
+                sx++;
+            }
+            if(sy > ty2){
+                swap_U(state, sy, sx);
+                sy--;
+            }else if(sy < ty2){
+                swap_D(state, sy, sx);
+                sy++;  
+            }
+        }
+    }
+
+*/
+
+
+    //必要な上下左右の動作を確認
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            if(goal[y][x] == state[i][j]){
+                tx = j;
+                ty = i;
+                mx = x-j;
+                my = y-i;
+            }
+        }
+    }
+    if(cnt == 0){
+        my--;
+    }else if(cnt == 1){
+        mx++;
+    }
+
+
+    //選択パネルが,動かすパネルより上
+    if(sy < ty){
+        //選択パネルを,動かすパネルのひとつ上の列まで持って行く
+        while(sy != (ty-1)){
+            swap_D(state, sy, sx);
+            sy++;
+        }
+        //選択パネルが,動かすパネルより右にあり
+        if(sx > tx){
+            //目的地より右にある場合
+            if(mx <= -1){
+                //動かすパネルの左上まで持って行く
+                while(tx != sx-1){
+                    swap_L(state, sy, sx);
+                    sx--;
+                }
+                //動かすパネルの左横に持って行く
+                swap_D(state, sy, sx);
+                sy++;
+            //目的地より左にある場合
+            }else if(mx >= 1){
+                swap_D(state, sy, sx);
+                sy++;
+                //右横に持って行く
+                while((tx+1) != sx){
+                    swap_L(state, sy, sx);
+                    sx--;
+                }
+            }else if(mx == 0){
+                while(tx != sx){
+                    swap_L(state, sy, sx);
+                    sx--;
+                }
+            }
+        /*-----------ここまで完成！！！----------*/
+        //選択パネルが,動かすパネルより左
+        }else if(sx < tx){
+            //選択パネルが,動かすパネルより左にあり
+            if(sx < tx){
+                //目的地より左にある場合
+                if(mx >= 1){
+                    //選択パネルを動かすパネルの真上へ
+                    while((tx+1) != sx){
+                        swap_R(state, sy, sx);
+                        sx++;
+                    }
+                    swap_D(state, sy, sx);
+                    sy++;
+                //目的地より右にある場合
+                }else if(mx <= -1){
+                    swap_D(state, sy, sx);
+                    sy++;
+                    while(tx != sx+1){
+                        swap_R(state, sy, sx);
+                        sx++;
+                    }
+                }else if(mx == 0){
+                    while(tx != sx){
+                        swap_R(state, sy, sx);
+                        sx++;
+                    }
+                }
+            }
+
+        }else if(sx == tx){
+            if(mx <= -1){
+                swap_L(state, sy, sx);
+                sx--;
+                swap_D(state, sy, sx);
+                sy++;
+            }else if(mx >= 1){
+                swap_R(state, sy, sx);
+                sx++;
+                swap_D(state, sy, sx);
+                sy++;
+            }   
+        }
+    /*-----------ここまで完成！----------*/
+    //選択パネルが,動かすパネルより下
+    }else if(sy > ty){
+        while(sy != (ty+1)){
+            swap_U(state, sy, sx);
+            sy--;
+        }
+        //選択パネルが,動かすパネルより右にあり
+        if(sx > tx){
+            //目的地より左にある場合
+            if(mx >= 1){
+                //動かすパネルの右下へ
+                while(sx != (tx+1)){
+                    swap_L(state, sy, sx);
+                    sx--;
+                }
+            //動かすパネルの右横へ
+            swap_U(state, sy, sx);
+            sy--;
+            //目的地より右にある場合
+            }else if(mx <= -1){
+                //左下へ
+                while(sx != (tx-1)){
+                    swap_L(state, sy, sx);
+                    sx--;
+                }
+                //左横へ
+                swap_U(state, sy, sx);
+                sy--;
+            }else if(mx == 0){
+                while(sy != ty-1){
+                    swap_U(state, sy, sx);
+                    sy--;
+                }
+                while(sx != tx){
+                    swap_L(state, sy, sx);
+                    sx--;
+                }
+            }
+        //選択パネルが,動かすパネルより左にあり
+        }else if(sx < tx){
+            //目的地より左にある場合
+            if(mx >= 1){
+                //動かすパネルの右下へ
+                while(sx != (tx+1)){
+                    swap_R(state, sy, sx);
+                    sx++;
+                }           
+                //パネルの右横へ
+                swap_U(state, sy, sx);
+                sy--;
+            //目的地より右にある場合
+            }else if(mx <= 0){
+                //パネルの左下へ
+                while(sx != tx-1){
+                    swap_R(state, sy, sx);
+                    sx++;
+                }
+                //パネルの左横へ
+                swap_U(state, sy, sx);
+                sy--;
+            }
+        }else if(sx == tx){
+            //パネルの左横へ
+            if(mx <= -1){
+                swap_L(state, sy, sx);
+                sx--;
+                swap_U(state, sy, sx);
+                sy--;
+            //右横へ
+            }else if(mx >= 1){
+                swap_R(state, sy, sx);
+                sx++;
+                swap_U(state, sy, sx);
+                sy--;
+            //反時計回りに真上へ
+            }else if(mx == 0 && sx != width-1){
+                swap_R(state, sy, sx);
+                sx++;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_L(state, sy, sx);
+                sx--;
+            //時計回りに真上へ
+            }else if(mx == 0 && sx == width-1){
+                swap_L(state, sy, sx);
+                sx--;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_R(state, sy, sx);
+                sx++;
+            }
+        }
+    //選択パネルが動かすパネルと同じ列
+    }else if(sy == ty){
+        //選択パネルが動かすパネルより右
+        if(sx > tx){
+            while(sx != tx+1){
+                swap_L(state, sy, sx);
+                sx--;
+            }
+            if(mx <= -1){
+                if(sy == height-1){
+                    swap_U(state, sy, sx);
+                    sy--;
+                    swap_L(state, sy, sx);
+                    sx--;
+                    swap_L(state, sy, sx);
+                    sx--;
+                    swap_D(state, sy, sx);
+                    sy++;
+                }else if(sy != height-1){
+                    swap_D(state, sy, sx);
+                    sy++;
+                    swap_L(state, sy, sx);
+                    sx--;
+                    swap_L(state, sy, sx);
+                    sx--;
+                    swap_U(state, sy, sx);
+                    sy--;
+                }
+            }else if(mx == 0){
+                swap_U(state, sy, sx);
+                sy--;
+                swap_L(state, sy, sx);
+                sx--;
+
+            }
+        //選択パネルが動かすパネルより左
+        }else if(sx < tx){
+            while(sx != tx-1){
+                swap_R(state, sy, sx);
+                sx++;
+            }
+            if(mx >= 1){
+                if(sy != height-1){
+                    swap_D(state, sy, sx);
+                    sy++;
+                    swap_R(state, sy, sx);
+                    sx++;
+                    swap_R(state, sy, sx);
+                    sx++;
+                    swap_U(state, sy, sx);
+                    sy--;
+                }else if(sy == height-1){
+                    swap_U(state, sy, sx);
+                    sy--;
+                    swap_R(state, sy, sx);
+                    sx++;
+                    swap_R(state, sy, sx);
+                    sx++;
+                    swap_D(state, sy, sx);
+                    sy++;
+                }
+            }else if(mx == 0 && sy == height-1){
+                swap_U(state, sy, sx);
+                sy--;
+                swap_R(state, sy, sx);
+                sx++;
+            }else if(mx == 0 && sy != height-1){
+                swap_D(state, sy, sx);
+                sy++;
+                swap_R(state, sy, sx);
+                sx++;
+                swap_R(state, sy, sx);
+                sx++;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_L(state, sy, sx);
+                sx--;
+            }
+        }
+    }
+    //以上、ここまでが交換する直前まで持って行くプログラム
+
+    /*
+    cout << '\n';
+    cout << "mx:" << mx << "my:" << my << endl;
+    cout << "sx:" << sx << "sy:" << sy << endl;
+    cout << "tx:" << tx << "ty:" << ty << endl;
+    */
+
+    //ここからが交換するプログラム
+
+    //スペースが左にある場合
+    if(tx == sx+1 && mx != 0){
+        while(mx != 0){
+            swap_R(state, sy, sx);
+            sx++;
+            mx++;
+            tx--;
+            if(sy != height-1 && mx != 0){
+                swap_D(state, sy, sx);
+                sy++;
+                swap_L(state, sy, sx);
+                sx--;
+                swap_L(state, sy, sx);
+                sx--;
+                swap_U(state, sy, sx);
+                sy--;
+            }else if(sy == height-1 && mx != 0){
+                swap_U(state, sy, sx);
+                sy--;
+                swap_L(state, sy, sx);
+                sx--;
+                swap_L(state, sy, sx);
+                sx--;
+                swap_D(state, sy, sx);
+                sy++;
+            }
+        }
+    }
+    //スペースが右にある場合
+    if(tx == sx-1 && mx != 0){
+        while(mx != 0){
+            swap_L(state, sy, sx);
+            sx--;
+            mx--;
+            tx++;
+            if(sy != height-1 && mx != 0){
+                swap_D(state, sy, sx);
+                sy++;
+                swap_R(state, sy, sx);
+                sx++;
+                swap_R(state, sy, sx);
+                sx++;
+                swap_U(state, sy, sx);
+                sy--;
+            }else if(sy == height-1 && mx != 0){
+                swap_U(state, sy, sx);
+                sy--;
+                swap_R(state, sy, sx);
+                sx++;
+                swap_R(state, sy, sx);
+                sx++;
+                swap_D(state, sy, sx);
+                sy++;
+            }
+        }
+    }
+    //mxが0だがmyが0じゃない&&右にある
+    if(mx == 0 && my != 0 && tx+1 == sx){
+        swap_U(state, sy, sx);
+        sy--;
+        swap_L(state, sy, sx);
+        sx--;
+    //mxが0だがmyが0じゃない&&左にある
+    }else if(mx == 0 && my != 0 && tx-1 == sx){
+        if(sy == height-1){
+            swap_U(state, sy, sx);
+            sy--;
+            swap_R(state, sy, sx);
+            sx++;
+        }else if(sy != height-1 && tx != width-1){
+            swap_D(state, sy, sx);
+            sy++;
+            swap_R(state, sy, sx);
+            sx++;
+            swap_R(state, sy, sx);
+            sx++;
+            swap_U(state, sy, sx);
+            sy--;
+            swap_U(state, sy, sx);
+            sy--;
+            swap_L(state, sy, sx);
+            sx--;
+        }else if(sy != height-1 && tx == width-1){
+            swap_U(state, sy, sx);
+            sy--;
+            swap_R(state, sy, sx);
+            sx++;
+        }
+    }
+    //選択したパネルが真上にあるとき
+    if(ty == sy+1 && my <= -1 && mx == 0){
+        while(my != 0){
+            swap_D(state, sy, sx);
+            sy++;
+            my++;
+            if(sx != width-1 && my <= -1){
+                swap_R(state, sy, sx);
+                sx++;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_L(state, sy, sx);
+                sx--;
+            }else if(sx == width-1 && my <= -1){
+                swap_L(state, sy, sx);
+                sx--;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_U(state, sy, sx);
+                sy--;
+                swap_R(state, sy, sx);
+                sx++;
+            }
+        }
+    }
+    if(cnt == 1){
+        while(sy != width-1){
+            swap_D(state, sy, sx);
+            sy++;
+        }
+        while(sx != x){
+            swap_L(state, sy, sx);
+            sx--;
+        }
+        swap_U(state, sy, sx);
+        sy--;
+        swap_R(state, sy, sx);
+        sx++;
+    }
+}
+return 0;
+}
 
 int move(int y, int x, int flag){
     //動かす必要が無い場合返す

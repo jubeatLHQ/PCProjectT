@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -19,19 +21,19 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 
-import tmcit.hokekyo1210.SolverUI.AlgorithmPicture;
 import tmcit.hokekyo1210.SolverUI.HttpUtil;
+import tmcit.hokekyo1210.SolverUI.Problem;
 
-public class MainFrame extends JFrame implements ActionListener{
+public class MainFrame extends JFrame implements ActionListener, ComponentListener{
 
 	private static final long serialVersionUID = 164320872137330976L;
 
 	private String title;
 	private SubFrame subframe;
+	public OptionFrame optionframe;
 
 	public MainFrame(String title,SubFrame subframe){
 		this.title = title;
@@ -52,13 +54,14 @@ public class MainFrame extends JFrame implements ActionListener{
 	private List<String> options = new ArrayList<String>();
 	private int width;
 	private int height;
+	private Problem problem;
 
 	private void initUI() throws Exception{
 		UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setTitle(title);
-		this.setSize(803, 450);
+		this.setSize(500, 500);
 		this.setResizable(false);
 
 		mainPanel = new JPanel(null);
@@ -73,6 +76,7 @@ public class MainFrame extends JFrame implements ActionListener{
 		mainPanel.add(imageLabel);
 
 		this.setTransferHandler(new DropFileHandler(this));
+		this.addComponentListener(this);
 
 		this.add(mainPanel);
 
@@ -107,9 +111,10 @@ public class MainFrame extends JFrame implements ActionListener{
 		mainPanel.repaint();
 
 
+		String name = file.getName();
 		BufferedImage image = null;
 
-		if(file.getName().indexOf(".ppm")!=-1){
+		if(name.indexOf(".ppm")!=-1){
 			ImageUtil iu = new ImageUtil(file.getAbsolutePath());
 			BufferedImage bi = iu.getBuffImg();
 			if(bi==null){return;}
@@ -155,23 +160,14 @@ public class MainFrame extends JFrame implements ActionListener{
 			}
 			imageLabels.add(newArray);
 		}
-
-		final AlgorithmPicture picSolver = new AlgorithmPicture(images,row,column,image.getWidth(),image.getHeight(),subframe);
-
-
+		
 		mainPanel.setBounds(0, 0, image.getWidth()+3, image.getHeight()+3);
 		this.setSize(image.getWidth()+12, image.getHeight()+50);
 		this.repaint();
-		
-		SwingUtilities.invokeLater(new Runnable(){
-			public void run(){
-				try {
-					picSolver.start();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+
+		problem = new Problem(name,row,column,width,height,cost1,cost2,cnum,images);
+		optionframe.setProblem(problem);
+
 	}
 
 	private void paint(ILabel label){
@@ -243,6 +239,31 @@ public class MainFrame extends JFrame implements ActionListener{
 				}
 			}
 		}
+	}
+
+	@Override
+	public void componentResized(ComponentEvent paramComponentEvent) {
+		// TODO 自動生成されたメソッド・スタブ
+
+	}
+
+	@Override
+	public void componentMoved(ComponentEvent paramComponentEvent) {
+		if(optionframe!=null){
+			optionframe.moveDefault();
+		}
+	}
+
+	@Override
+	public void componentShown(ComponentEvent paramComponentEvent) {
+		// TODO 自動生成されたメソッド・スタブ
+
+	}
+
+	@Override
+	public void componentHidden(ComponentEvent paramComponentEvent) {
+		// TODO 自動生成されたメソッド・スタブ
+
 	}
 
 
