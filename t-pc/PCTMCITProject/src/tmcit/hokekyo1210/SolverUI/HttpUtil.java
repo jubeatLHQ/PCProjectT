@@ -31,7 +31,7 @@ public class HttpUtil {
 		System.out.println(content.asString());
 	}
 
-	public static void getProblemFile(String problemName) throws Exception{
+	public static Path getProblemFile(String problemName) throws Exception{
 		File dir = new File(Main.tmpDir);
 		if(!dir.exists()){
 			dir.mkdirs();
@@ -40,7 +40,7 @@ public class HttpUtil {
 						  .execute().returnContent();
 		Path tmpPath = Paths.get(Main.tmpDir, problemName);
 		Files.copy(content.asStream(), tmpPath, StandardCopyOption.REPLACE_EXISTING);
-		Main.frame.sendImage(tmpPath.toFile().getAbsolutePath());
+		return tmpPath;
 	}
 
 

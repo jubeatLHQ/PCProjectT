@@ -160,11 +160,13 @@ public class AlgorithmPicture {
 		System.out.println(urpieces+" pieces");
 		System.out.println(dlpieces+" pieces");
 		System.out.println(drpieces+" pieces");
-		System.out.println(pieces+" pieces_time "+(System.currentTimeMillis()-started)+" ms");
 
 		if(pieces==0){
 			throw new Exception();
 		}
+		ulpieces++;urpieces++;dlpieces++;drpieces++;
+		pieces = ulpieces*urpieces*dlpieces*drpieces;
+		System.out.println(pieces+" pieces_time "+(System.currentTimeMillis()-started)+" ms");
 	}
 
 	public void start2(){
@@ -220,18 +222,17 @@ public class AlgorithmPicture {
 			}
 		}
 
+		fuls.add(null);
+		furs.add(null);
+		fdls.add(null);
+		fdrs.add(null);
+
 		List<MyPuzzle> finishedPuzzles = new ArrayList<MyPuzzle>();
 		int count = 0;
 		for(MyBufferedImage imgul:fuls){
 			for(MyBufferedImage imgur:furs){
-				if(imgul==imgur){continue;}
 				for(MyBufferedImage imgdl:fdls){
-					if(imgur==imgdl){continue;}
-					if(imgul==imgdl){continue;}
 					for(MyBufferedImage imgdr:fdrs){
-						if(imgdl==imgdr){continue;}
-						if(imgul==imgdr){continue;}
-						if(imgur==imgdr){continue;}
 						MyPuzzle puzzle = makePuzzle(imgul,imgur,imgdl,imgdr);
 						finishedPuzzles.add(puzzle);
 						count++;
@@ -266,6 +267,20 @@ public class AlgorithmPicture {
 	private MyPuzzle makePuzzle(MyBufferedImage imgul, MyBufferedImage imgur, MyBufferedImage imgdl, MyBufferedImage imgdr) {
 		MyPuzzle newPuzzle = new MyPuzzle();
 		int[][] puzzle = new int[row][column];
+		if((imgul!=null)&&(imgul==imgur||imgul==imgdl||imgul==imgdr)){
+			newPuzzle.setPuzzle(puzzle);
+			return newPuzzle;
+		}
+		if((imgur!=null)&&(imgur==imgdl||imgur==imgdr)){
+			newPuzzle.setPuzzle(puzzle);
+			return newPuzzle;
+		}
+		if((imgdl!=null)&&(imgdl==imgdr)){
+			newPuzzle.setPuzzle(puzzle);
+			return newPuzzle;
+		}
+
+
 
 		for(int i = 0;i<row;i++){
 			for(int u = 0;u<column;u++){
@@ -279,19 +294,24 @@ public class AlgorithmPicture {
 			}
 		}
 
-		puzzle[0][0] = imgul.getIndex();
-		puzzle[row-1][0] = imgur.getIndex();
-		puzzle[0][column-1] = imgdl.getIndex();
-		puzzle[row-1][column-1] = imgdr.getIndex();
-
 		LinkedList<Pair> array = new LinkedList<Pair>();
 
-
-		array.offer(new Pair(row-1,column-1));
-		array.offer(new Pair(0,0));
-		array.offer(new Pair(row-1,0));
-		array.offer(new Pair(0,column-1));
-
+		if(imgul!=null){
+			puzzle[0][0] = imgul.getIndex();
+			array.offer(new Pair(0,0));
+		}
+		if(imgur!=null){
+			puzzle[row-1][0] = imgur.getIndex();
+			array.offer(new Pair(row-1,0));
+		}
+		if(imgdl!=null){
+			puzzle[0][column-1] = imgdl.getIndex();
+			array.offer(new Pair(0,column-1));
+		}
+		if(imgdr!=null){
+			puzzle[row-1][column-1] = imgdr.getIndex();
+			array.offer(new Pair(row-1,column-1));
+		}
 
 
 		while(!array.isEmpty()){

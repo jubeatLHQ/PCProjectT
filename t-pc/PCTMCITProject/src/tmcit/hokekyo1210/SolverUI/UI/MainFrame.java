@@ -8,6 +8,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -160,7 +161,7 @@ public class MainFrame extends JFrame implements ActionListener, ComponentListen
 			}
 			imageLabels.add(newArray);
 		}
-		
+
 		mainPanel.setBounds(0, 0, image.getWidth()+3, image.getHeight()+3);
 		this.setSize(image.getWidth()+12, image.getHeight()+50);
 		this.repaint();
@@ -216,9 +217,10 @@ public class MainFrame extends JFrame implements ActionListener, ComponentListen
 					value = "prob"+value;
 					value += ".ppm";
 					try {
-						HttpUtil.getProblemFile(value);
+						Path tmpPath = HttpUtil.getProblemFile(value);
+						sendImage(tmpPath.toFile().getAbsolutePath());
 					} catch (Exception e) {
-						e.printStackTrace();
+						System.out.println("server error");
 					}
 				}
 			}
