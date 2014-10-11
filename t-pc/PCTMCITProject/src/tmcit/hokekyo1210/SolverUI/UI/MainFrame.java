@@ -25,8 +25,9 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 
-import tmcit.hokekyo1210.SolverUI.HttpUtil;
 import tmcit.hokekyo1210.SolverUI.Problem;
+import tmcit.hokekyo1210.SolverUI.Util.HttpUtil;
+import tmcit.hokekyo1210.SolverUI.Util.ImageUtil;
 
 public class MainFrame extends JFrame implements ActionListener, ComponentListener{
 

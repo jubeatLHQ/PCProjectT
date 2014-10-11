@@ -9,8 +9,8 @@ import java.util.List;
 
 import javax.swing.TransferHandler;
 
-import tmcit.hokekyo1210.SolverUI.HttpUtil;
 import tmcit.hokekyo1210.SolverUI.Main;
+import tmcit.hokekyo1210.SolverUI.Util.HttpUtil;
 
 public class DropFileHandler extends TransferHandler{
 

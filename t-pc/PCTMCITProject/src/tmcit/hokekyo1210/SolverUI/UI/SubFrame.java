@@ -2,6 +2,7 @@ package tmcit.hokekyo1210.SolverUI.UI;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,8 +11,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import tmcit.hokekyo1210.SolverUI.MyBufferedImage;
 import tmcit.hokekyo1210.SolverUI.MyPuzzle;
+import tmcit.hokekyo1210.SolverUI.Problem;
 
 public class SubFrame extends JFrame implements KeyListener{
 
@@ -47,12 +48,12 @@ public class SubFrame extends JFrame implements KeyListener{
 
 	private int row;
 	private int column;
-	private List<MyBufferedImage> images;
+	private List<BufferedImage> images;
 	private int all = 0;
 	private int now = 0;
 	private List<MyPuzzle> finishedPuzzles = new ArrayList<MyPuzzle>();
 
-	public void setProblem(int width,int height,int row,int column,List<MyBufferedImage> images){
+	public void setProblem(Problem problem){
 		for(JLabel label:labels){
 			mainPanel.remove(label);
 		}
@@ -61,9 +62,12 @@ public class SubFrame extends JFrame implements KeyListener{
 		this.all = 0;
 		this.column = 0;
 
-		this.row = row;
-		this.column = column;
-		this.images = images;
+		this.row = problem.row;
+		this.column = problem.column;
+		this.images = problem.cutImages;
+
+		int width = problem.width;
+		int height = problem.height;
 
 		mainPanel.setSize(width, height);
 		this.setSize(width+10, height+20);
@@ -105,7 +109,7 @@ public class SubFrame extends JFrame implements KeyListener{
 		if(index==-1){
 			labels.get(x+y*row).setIcon(null);
 		}else{
-			labels.get(x+y*row).setIcon(new ImageIcon(images.get(index).getImage()));
+			labels.get(x+y*row).setIcon(new ImageIcon(images.get(index)));
 		}
 	}
 

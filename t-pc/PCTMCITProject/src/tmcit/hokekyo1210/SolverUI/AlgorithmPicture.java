@@ -10,11 +10,13 @@ import java.util.List;
 
 import tmcit.hokekyo1210.SolverUI.MyColorsList.DirectionJ;
 import tmcit.hokekyo1210.SolverUI.UI.SubFrame;
+import tmcit.hokekyo1210.SolverUI.Util.Pair;
 
 public class AlgorithmPicture {
 
 	private List<BufferedImage> images;
 	private List<MyBufferedImage> images2 = new ArrayList<MyBufferedImage>();
+	private Problem problem;
 	private int row;
 	private int column;
 	private int width;
@@ -28,6 +30,7 @@ public class AlgorithmPicture {
 	private SubFrame subframe;
 
 	public AlgorithmPicture(Problem problem, SubFrame subframe) {
+		this.problem = problem;
 		this.images = problem.cutImages;
 		this.row = problem.row;
 		this.column = problem.column;
@@ -235,32 +238,19 @@ public class AlgorithmPicture {
 					for(MyBufferedImage imgdr:fdrs){
 						MyPuzzle puzzle = makePuzzle(imgul,imgur,imgdl,imgdr);
 						finishedPuzzles.add(puzzle);
-						count++;
+						/*count++;
 						if(count%100==0){
 							double d = (count*1.0)/(pieces*1.0);
 							System.out.println((d*100.0)+"% search "+String.valueOf(order));
-						}
+						}*/
 					}
 				}
 			}
 		}
+		AlgorithmPictureThread thread = new AlgorithmPictureThread(finishedPuzzles,problem,subframe,rate2,isSP,memo);
+		thread.start();
 
-		subframe.setProblem(width,height,row,column,images2);
-
-		PriorityArrayList<MyPuzzle,Double> pal = new PriorityArrayList<MyPuzzle,Double>();
-		for(MyPuzzle puzzle:finishedPuzzles){
-			///System.out.println(puzzle.getAllRate());
-			pal.addValue(puzzle.getAllRate(), puzzle);
-		}
-		List<MyPuzzle> sortedPuzzles = new ArrayList<MyPuzzle>();
-		for(int i = 0;i<pal.size();i++){
-			for(MyPuzzle puzzle:pal.getSortedObjects(i)){
-				sortedPuzzles.add(puzzle);
-			}
-		}
-		subframe.setPuzzles(sortedPuzzles);
-
-		System.out.println(sortedPuzzles.get(0).getAllRate()+"% matched"+" order "+String.valueOf(order)+" "+(System.currentTimeMillis()-started)+" ms");
+		///System.out.println(sortedPuzzles.get(0).getAllRate()+"% matched"+" order "+String.valueOf(order)+" "+(System.currentTimeMillis()-started)+" ms");
 	}
 
 
@@ -295,46 +285,33 @@ public class AlgorithmPicture {
 		}
 
 		LinkedList<Pair> array = new LinkedList<Pair>();
+		MyBufferedImage[][] puzzleImage = new MyBufferedImage[row][column];
 
 		if(imgul!=null){
 			puzzle[0][0] = imgul.getIndex();
+			puzzleImage[0][0] = imgul;
 			array.offer(new Pair(0,0));
 		}
 		if(imgur!=null){
 			puzzle[row-1][0] = imgur.getIndex();
+			puzzleImage[row-1][0] = imgur;
 			array.offer(new Pair(row-1,0));
 		}
 		if(imgdl!=null){
 			puzzle[0][column-1] = imgdl.getIndex();
+			puzzleImage[0][column-1] = imgdl;
 			array.offer(new Pair(0,column-1));
 		}
 		if(imgdr!=null){
 			puzzle[row-1][column-1] = imgdr.getIndex();
+			puzzleImage[row-1][column-1] = imgdr;
 			array.offer(new Pair(row-1,column-1));
 		}
 
-
-		while(!array.isEmpty()){
-
-			Pair p = array.poll();
-			List<Pair> around = aroundPair(p);
-			for(Pair newP:around){
-				if(puzzle[newP.first][newP.second]!=-1){continue;}
-				List<Pair> around2 = aroundPair(newP);
-				List<Pair> match = new ArrayList<Pair>();
-				for(Pair aP:around2){
-					if(puzzle[aP.first][aP.second]!=-1){match.add(aP);}
-				}
-				if(match.size()==0){continue;}
-				MyBufferedImage mostMatch = searchPiece(newP,match,stacks,puzzle,newPuzzle);
-
-				if(mostMatch!=null){
-					puzzle[newP.first][newP.second]=mostMatch.getIndex();
-					array.offer(newP);
-				}
-			}
-		}
+		newPuzzle.setQueue(array);
+		newPuzzle.setStacks(stacks);
 		newPuzzle.setPuzzle(puzzle);
+		newPuzzle.setPuzzleImage(puzzleImage);
 		return newPuzzle;
 	}
 
