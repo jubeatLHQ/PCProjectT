@@ -70,7 +70,7 @@ public class SubFrame extends JFrame implements KeyListener{
 		int height = problem.height;
 
 		mainPanel.setSize(width, height);
-		this.setSize(width+10, height+20);
+		this.setSize(width+7, height+30);
 		this.setVisible(true);
 
 		int partw = width/row;
@@ -96,7 +96,7 @@ public class SubFrame extends JFrame implements KeyListener{
 	public void showPuzzle(int index){
 		if(index>=all||index<0){return;}
 		now = index;
-		this.setTitle((index+1)+"/"+all);
+		this.setTitle((index+1)+"/"+all+" "+finishedPuzzles.get(index).getAllRate()+"%");
 		for(int y = 0;y<column;y++){
 			for(int x = 0;x<row;x++){
 				setPart(x,y,finishedPuzzles.get(index).getPuzzle()[x][y]);

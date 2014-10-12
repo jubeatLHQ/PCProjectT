@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
 
-public class PriorityArrayList<T,Double> {
+public class PriorityArrayList<T,K> {
 
 	private PriorityQueue<Double> values;
 	private HashMap<Double,List<T>> map = new HashMap<Double,List<T>>();
 	public PriorityArrayList(){
-		Comparator<Double> cp = (Comparator<Double>) new Comp();
+		Comparator<Double> cp = new Comp();
 		values = new PriorityQueue<Double>(1,cp);
 
 	}
@@ -25,8 +25,14 @@ public class PriorityArrayList<T,Double> {
 		array.add(object);
 	}
 
-	public List<T> getSortedObjects(int priority){
-		return map.get(values.toArray()[priority]);
+	public List<T> getSortedObjects(){
+		List<T> array = new ArrayList<T>();
+		while(!values.isEmpty()){
+			for(T t:map.get(values.poll())){
+				array.add(t);
+			}
+		}
+		return array;
 	}
 
 	public int size(){

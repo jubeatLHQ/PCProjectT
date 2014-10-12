@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -21,6 +22,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import tmcit.hokekyo1210.SolverUI.AlgorithmPicture;
+import tmcit.hokekyo1210.SolverUI.Main;
 import tmcit.hokekyo1210.SolverUI.Problem;
 
 public class OptionFrame extends JFrame implements ActionListener, ChangeListener{
@@ -68,7 +70,7 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 		this.setLocation(main.getX()+main.getWidth(), main.getY());
 	}
 
-	private static final int defValue1 = 65;
+	private static final int defValue1 = 115;
 	private static final int defValue2 = 40;
 
 	private AlgorithmPicture picSolver;
@@ -90,9 +92,13 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 			slider.setEnabled(false);
 			slider2.setEnabled(false);
 			b1.setEnabled(false);
+			combo.setEnabled(false);
 
 			picSolver = null;
 		}else{
+
+			if(Main.threads!=null&&Main.threads.isRunning()){return;}
+
 			border.setTitle(problem.name);
 			rowLabel.setText(String.valueOf(problem.row));
 			columnLabel.setText(String.valueOf(problem.column));
@@ -112,6 +118,9 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 			piecesLabel.setText("0_0");
 			piecesLabel1.setText("0_0");
 			piecesLabel2.setText("0 ps");
+			combo.setEnabled(true);
+
+			reloadPanel();
 
 			picSolver = new AlgorithmPicture(problem,subframe);
 			reloadProblem();
@@ -122,8 +131,12 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 	public void reloadProblem(){
 		if(picSolver==null){return;}
 		try {
-			picSolver.start();
-			b1.setEnabled(true);
+			double rate1 = 85.0+(slider.getValue()/10.0);
+			picSolver.start(rate1);
+			if(Main.threads!=null&&Main.threads.isRunning()){
+			}else{
+				b1.setEnabled(true);
+			}
 		} catch (Exception e) {
 			b1.setEnabled(false);
 		}
@@ -133,14 +146,13 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 
 	public void reloadPanel(){
 		if(picSolver==null){return;}
-		picSolver.prate = 90.0+(slider.getValue()/10.0);
-		picSolver.rate2 = 90.0+(slider2.getValue()/10.0);
-		rate1Label.setText(String.valueOf(picSolver.prate)+"%");
-		rate2Label.setText(String.valueOf(picSolver.rate2)+"%");
+		double rate1 = 85.0+(slider.getValue()/10.0);
+		double rate2 = 90.0+(slider2.getValue()/10.0);
+		rate1Label.setText(String.valueOf(rate1)+"%");
+		rate2Label.setText(String.valueOf(rate2)+"%");
 		piecesLabel.setText(picSolver.ulpieces+"_"+picSolver.urpieces);
 		piecesLabel1.setText(picSolver.dlpieces+"_"+picSolver.drpieces);
 		piecesLabel2.setText(picSolver.pieces+" ps");
-		picSolver.isSP = rate2box.isSelected();
 	}
 
 	private TitledBorder border;
@@ -159,7 +171,8 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 	private JLabel piecesLabel;
 	private JLabel piecesLabel1;
 	private JLabel piecesLabel2;
-	private JButton b1;
+	public JButton b1;
+	public JComboBox<Integer> combo;
 
 	private void launchPanel() {
 		JPanel mainPanel = new JPanel(null);
@@ -229,7 +242,7 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 		JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 		separator.setBounds(7, 195,width-19,5);
 
-		slider = new JSlider(JSlider.VERTICAL,0,100,0);
+		slider = new JSlider(JSlider.VERTICAL,0,150,0);
 		slider.setBounds(10, 202, 30, 170);
 		slider.setBackground(bg);
 		slider.setEnabled(false);
@@ -290,16 +303,19 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 		JSeparator separator3 = new JSeparator(SwingConstants.VERTICAL);
 		separator3.setBounds(width/2, 380,5,50);
 
-		JCheckBox box1 = new JCheckBox();
+		Integer[] combodata = {1,2,3,4,5,6,7,8};
+		combo = new JComboBox<Integer>(combodata);
+		combo.setBackground(bg);
+		combo.setBounds(9, 378, 28, 17);
+		combo.setEnabled(false);
+		combo.setSelectedItem(Integer.valueOf(4));
+
 		JCheckBox box2 = new JCheckBox();
 		JCheckBox box3 = new JCheckBox();
-		box1.setBackground(bg);
 		box2.setBackground(bg);
 		box3.setBackground(bg);
-		box1.setBounds(5,378, 20,17);
 		box2.setBounds(5,395, 20,17);
 		box3.setBounds(5,412, 20,17);
-		box1.setEnabled(false);
 		box2.setEnabled(false);
 		box3.setEnabled(false);
 
@@ -337,7 +353,7 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 		p1.add(piecesLabel2);
 		p1.add(separator2);
 		p1.add(separator3);
-		p1.add(box1);
+		p1.add(combo);
 		p1.add(box2);
 		p1.add(box3);
 		p1.add(b1);
@@ -358,7 +374,8 @@ public class OptionFrame extends JFrame implements ActionListener, ChangeListene
 			slider2.setEnabled(rate2box.isSelected());
 			reloadPanel();
 		}else if(event.getSource()==b1){
-			picSolver.start2();
+			double rate2 = 90.0+(slider2.getValue()/10.0);
+			picSolver.start2(rate2,rate2box.isSelected(),(Integer)combo.getSelectedItem(),this);
 		}
 	}
 

@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 
+import tmcit.hokekyo1210.SolverUI.Main;
 import tmcit.hokekyo1210.SolverUI.Problem;
 import tmcit.hokekyo1210.SolverUI.Util.HttpUtil;
 import tmcit.hokekyo1210.SolverUI.Util.ImageUtil;
@@ -53,13 +54,17 @@ public class MainFrame extends JFrame implements ActionListener, ComponentListen
 	private JPanel mainPanel;
 	private List<BufferedImage> images = new ArrayList<BufferedImage>();
 	private List<List<ILabel>> imageLabels = new ArrayList<List<ILabel>>();
-	private List<String> options = new ArrayList<String>();
+	private List<String> options;
 	private int width;
 	private int height;
 	private Problem problem;
 
 	private void initUI() throws Exception{
-		UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		try{
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		}catch(Exception e){
+			System.out.println("Look and Feel Error");
+		}
 
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setTitle(title);
@@ -85,14 +90,17 @@ public class MainFrame extends JFrame implements ActionListener, ComponentListen
 		JMenuBar menubar = new JMenuBar();
 		JMenu menu1 = new JMenu("File");
 		JMenuItem menuitem1 = new JMenuItem("Problem");
-		JMenuItem menuitem2 = new JMenuItem("Open");
-		JMenuItem menuitem3 = new JMenuItem("Exit");
+		JMenuItem menuitem2 = new JMenuItem("Stop");
+		JMenuItem menuitem3 = new JMenuItem("Open");
+		JMenuItem menuitem4 = new JMenuItem("Exit");
 		menuitem1.addActionListener(this);
 		menuitem2.addActionListener(this);
 		menuitem3.addActionListener(this);
+		menuitem4.addActionListener(this);
 		menu1.add(menuitem1);
 		menu1.add(menuitem2);
 		menu1.add(menuitem3);
+		menu1.add(menuitem4);
 		menubar.add(menu1);
 
 		this.setJMenuBar(menubar);
@@ -109,9 +117,9 @@ public class MainFrame extends JFrame implements ActionListener, ComponentListen
 		}
 		images.clear();
 		imageLabels.clear();
-		options.clear();
 		mainPanel.repaint();
 
+		options  = new ArrayList<String>();
 
 		String name = file.getName();
 		BufferedImage image = null;
@@ -142,6 +150,9 @@ public class MainFrame extends JFrame implements ActionListener, ComponentListen
 			String[] strs2 = options.get(2).split(" ");
 			cost1 = Integer.parseInt(strs2[0]);
 			cost2 = Integer.parseInt(strs2[1]);
+		}else{
+			row = 5;
+			column = 6;
 		}
 
 		int splitwidth = width/row;
@@ -223,6 +234,10 @@ public class MainFrame extends JFrame implements ActionListener, ComponentListen
 					} catch (Exception e) {
 						System.out.println("server error");
 					}
+				}
+			}else if(text.equalsIgnoreCase("Stop")){
+				if(Main.threads!=null&&Main.threads.isRunning()){
+					Main.threads.cancelAllTask();
 				}
 			}
 		}

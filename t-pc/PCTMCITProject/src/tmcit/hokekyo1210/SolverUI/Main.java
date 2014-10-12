@@ -17,6 +17,8 @@ public class Main {
 	public static SubFrame frame2;
 	public static OptionFrame of;
 
+	public static AlgorithmPictureThread threads = null;
+
 
 	public Main(){
 		launchUI();

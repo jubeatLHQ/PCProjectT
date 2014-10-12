@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import tmcit.hokekyo1210.SolverUI.MyColorsList.DirectionJ;
+import tmcit.hokekyo1210.SolverUI.UI.OptionFrame;
 import tmcit.hokekyo1210.SolverUI.UI.SubFrame;
 import tmcit.hokekyo1210.SolverUI.Util.Pair;
 
@@ -22,10 +22,6 @@ public class AlgorithmPicture {
 	private int width;
 	private int height;
 	private long order = 0;
-
-	public double prate = 96.5;
-	public double rate2 = 0.0;
-	public boolean isSP = false;
 
 	private SubFrame subframe;
 
@@ -43,17 +39,6 @@ public class AlgorithmPicture {
 		}
 	}
 
-	public void setRate1(double rate){
-		prate = rate;
-	}
-	public void setRate2(double rate){
-		rate2 = rate;
-	}
-
-	private List<MyBufferedImage> fuls;
-	private List<MyBufferedImage> furs;
-	private List<MyBufferedImage> fdls;
-	private List<MyBufferedImage> fdrs;
 	private HashMap<Integer,List<Integer>> ulrate;
 	private HashMap<Integer,List<Integer>> urrate;
 	private HashMap<Integer,List<Integer>> dlrate;
@@ -69,7 +54,7 @@ public class AlgorithmPicture {
 	public int dlpieces;
 	public int drpieces;
 
-	public void start() throws Exception{
+	public void start(double rate) throws Exception{
 
 		long started = System.currentTimeMillis();
 
@@ -99,19 +84,19 @@ public class AlgorithmPicture {
 				MyBufferedImage compi = images2.get(i);
 				int r = 0;
 				if(!image.equals(compi)){
-					r = rate(image.up,compi.down,false);
+					r = rate(image.up,compi.down,false,rate);
 					if(r>upratemax){
 						upratemax = r;
 					}
-					r = rate(image.down,compi.up,false);
+					r = rate(image.down,compi.up,false,rate);
 					if(r>downratemax){
 						downratemax = r;
 					}
-					r = rate(image.right,compi.left,false);
+					r = rate(image.right,compi.left,false,rate);
 					if(r>rightratemax){
 						rightratemax = r;
 					}
-					r = rate(image.left,compi.right,false);
+					r = rate(image.left,compi.right,false,rate);
 					if(r>leftratemax){
 						leftratemax = r;
 					}
@@ -129,7 +114,6 @@ public class AlgorithmPicture {
 				ulrate.get(ul).add(count);
 				uls.add(ul);
 				ulpieces++;
-				///System.out.println(ul+","+count);
 			}
 			if(upratemax!=100&&rightratemax!=100){
 				if(urrate.get(ur)==null){
@@ -155,14 +139,13 @@ public class AlgorithmPicture {
 				drs.add(dr);
 				drpieces++;
 			}
-			///System.out.println(count+"/"+upratemax+"."+id1+"/"+downratemax+"."+id2+"/"+rightratemax+"."+id3+"/"+leftratemax+"."+id4);
 			count++;
 		}
 		pieces = ulpieces*urpieces*dlpieces*drpieces;
-		System.out.println(ulpieces+" pieces");
-		System.out.println(urpieces+" pieces");
-		System.out.println(dlpieces+" pieces");
-		System.out.println(drpieces+" pieces");
+		///System.out.println(ulpieces+" pieces");
+		///System.out.println(urpieces+" pieces");
+		///System.out.println(dlpieces+" pieces");
+		///System.out.println(drpieces+" pieces");
 
 		if(pieces==0){
 			throw new Exception();
@@ -172,9 +155,13 @@ public class AlgorithmPicture {
 		System.out.println(pieces+" pieces_time "+(System.currentTimeMillis()-started)+" ms");
 	}
 
-	public void start2(){
+	public void start2(double rate,boolean isSP,int threadAmount,OptionFrame optionframe){
 		long started = System.currentTimeMillis();
 
+		List<MyBufferedImage> fuls;
+		List<MyBufferedImage> furs;
+		List<MyBufferedImage> fdls;
+		List<MyBufferedImage> fdrs;
 		fuls = new ArrayList<MyBufferedImage>();
 		furs = new ArrayList<MyBufferedImage>();
 		fdls = new ArrayList<MyBufferedImage>();
@@ -231,26 +218,24 @@ public class AlgorithmPicture {
 		fdrs.add(null);
 
 		List<MyPuzzle> finishedPuzzles = new ArrayList<MyPuzzle>();
-		int count = 0;
 		for(MyBufferedImage imgul:fuls){
 			for(MyBufferedImage imgur:furs){
 				for(MyBufferedImage imgdl:fdls){
 					for(MyBufferedImage imgdr:fdrs){
 						MyPuzzle puzzle = makePuzzle(imgul,imgur,imgdl,imgdr);
 						finishedPuzzles.add(puzzle);
-						/*count++;
-						if(count%100==0){
-							double d = (count*1.0)/(pieces*1.0);
-							System.out.println((d*100.0)+"% search "+String.valueOf(order));
-						}*/
 					}
 				}
 			}
 		}
-		AlgorithmPictureThread thread = new AlgorithmPictureThread(finishedPuzzles,problem,subframe,rate2,isSP,memo);
-		thread.start();
+		AlgorithmPictureThread thread = new AlgorithmPictureThread(finishedPuzzles,problem,subframe,optionframe,rate,isSP,memo,threadAmount);
+		if(Main.threads!=null&&Main.threads.isRunning()){
+		}else{
+			Main.threads = thread;
+			thread.start();
 
-		///System.out.println(sortedPuzzles.get(0).getAllRate()+"% matched"+" order "+String.valueOf(order)+" "+(System.currentTimeMillis()-started)+" ms");
+		}
+
 	}
 
 
@@ -315,114 +300,10 @@ public class AlgorithmPicture {
 		return newPuzzle;
 	}
 
-	public MyBufferedImage searchPiece(Pair newP,List<Pair> match,List<MyBufferedImage> stacks,int[][] puzzle,MyPuzzle mypuzzle){
 
-		MyBufferedImage mostMatch = null;
-		double mostrate = 0.0;
-		int mindex = -1;
-		for(int i = 0;i<stacks.size();i++){
-			MyBufferedImage source = stacks.get(i);
-			double sum = 0.0;
-			for(Pair around:match){
-				order++;
-				int index = puzzle[around.first][around.second];
-				MyBufferedImage around1image = images2.get(index);
-				DirectionJ dir = getDirection(newP,around);
-				String key = getKey(source.getMyColors(dir).getId(),around1image.getMyColors(reverseDir(dir)).getId());
-				sum+=memo.get(key);
-			}
-			sum/=match.size()*1.0;
-			if(sum>mostrate){
-				mostMatch = source;
-				mostrate = sum;
-				mindex = i;
-			}
-		}
-		if(isSP&&mostrate<rate2){///def94.0
-			mostMatch = null;
-		}else{
-			mypuzzle.allRate+=mostrate;
-			stacks.remove(mindex);
-		}
-		return mostMatch;
-	}
-
-	public DirectionJ reverseDir(DirectionJ dir){
-		if(dir==DirectionJ.UP){
-			return DirectionJ.DOWN;
-		}else if(dir==DirectionJ.DOWN){
-			return DirectionJ.UP;
-		}else if(dir==DirectionJ.RIGHT){
-			return DirectionJ.LEFT;
-		}else{
-			return DirectionJ.RIGHT;
-		}
-	}
-
-	public DirectionJ getDirection(Pair source,Pair p2){
-		DirectionJ returnDir = null;
-		int first = source.first;
-		int second = source.second;
-		int first2 = p2.first;
-		int second2 = p2.second;
-		int ff = first2-first;
-		int fs = second2-second;
-		if(ff==1){
-			returnDir = DirectionJ.RIGHT;
-		}else if(ff==-1){
-			returnDir = DirectionJ.LEFT;
-		}else if(fs==-1){
-			returnDir = DirectionJ.UP;
-		}else if(fs==1){
-			returnDir = DirectionJ.DOWN;
-		}
-		return returnDir;
-	}
-
-	private int max(int i,int u){
-		if(i>u){
-			return i;
-		}
-		return u;
-	}
-	private int min(int i,int u){
-		if(u>i){
-			return i;
-		}
-		return u;
-	}
-
-	public List<Pair> aroundPair(Pair source){
-		List<Pair> pairs = new ArrayList<Pair>();
-		int first = source.first-1;
-		int second = source.second;
-		if(first!=-1&&first<row&&second!=-1&&second<column){
-			Pair p = new Pair(first,second);
-			pairs.add(p);
-		}
-		first = source.first;
-		second = source.second-1;
-		if(first!=-1&&first<row&&second!=-1&&second<column){
-			Pair p = new Pair(first,second);
-			pairs.add(p);
-		}
-		first = source.first+1;
-		second = source.second;
-		if(first!=-1&&first<row&&second!=-1&&second<column){
-			Pair p = new Pair(first,second);
-			pairs.add(p);
-		}
-		first = source.first;
-		second = source.second+1;
-		if(first!=-1&&first<row&&second!=-1&&second<column){
-			Pair p = new Pair(first,second);
-			pairs.add(p);
-		}
-		return pairs;
-	}
 	private HashMap<String,Double> memo = new HashMap<String,Double>();
 
-	private int rate(MyColorsList color1,MyColorsList color2,boolean gradation){
+	private int rate(MyColorsList color1,MyColorsList color2,boolean gradation,double prate){
 		List<Color> c1s = color1.getList();
 		List<Color> c2s = color2.getList();
 		int sum = 0;
